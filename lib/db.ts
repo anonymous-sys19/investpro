@@ -70,6 +70,8 @@ export interface User {
   password_hash: string;
   first_name: string;
   last_name: string;
+  premium: boolean;
+  premium_expires: string | null;
   created_at: string;
 }
 

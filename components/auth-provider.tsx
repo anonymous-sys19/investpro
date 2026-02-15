@@ -14,6 +14,8 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
+  premium?: boolean;
+  premium_expires?: string | null;
 }
 
 interface AuthContextType {

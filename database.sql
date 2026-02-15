@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
+  premium BOOLEAN DEFAULT 0,
+  premium_expires TEXT DEFAULT NULL,
   created_at TEXT NOT NULL
 );
 
