@@ -1,166 +1,69 @@
-import path from "path";
-import fs from "fs";
-import initSqlJs, { type Database as SqlJsDatabase } from "sql.js";
-const DB_PATH = path.join(process.cwd(), "data", "investpro.db");
+import { createClient } from "@libsql/client";
 
-function ensureDir(dirPath: string) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-}
+// Configuración del cliente de Turso
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL || "file:investpro.db",
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-let _db: SqlJsDatabase | null = null;
-let _initPromise: Promise<SqlJsDatabase> | null = null;
-
-export async function getDb(): Promise<SqlJsDatabase> {
-  if (_db) return _db;
-  if (_initPromise) return _initPromise;
-
-  _initPromise = (async () => {
-    try {
-      const wasmPath = path.join(
-        process.cwd(),
-        "node_modules",
-        "sql.js",
-        "dist",
-        "sql-wasm.wasm",
-      );
-      const wasmBinaryBuffer = fs.readFileSync(wasmPath);
-      const wasmBinary = wasmBinaryBuffer.buffer.slice(
-        wasmBinaryBuffer.byteOffset,
-        wasmBinaryBuffer.byteOffset + wasmBinaryBuffer.byteLength
-      );
-
-      const SQL = await initSqlJs({ wasmBinary });
-
-      ensureDir(path.dirname(DB_PATH));
-
-      if (fs.existsSync(DB_PATH)) {
-        const buffer = fs.readFileSync(DB_PATH);
-        _db = new SQL.Database(buffer);
-      } else {
-        _db = new SQL.Database();
-      }
-
-      _db.run("PRAGMA foreign_keys = ON;");
-
-      // Users table
-      _db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-          id TEXT PRIMARY KEY,
-          email TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          first_name TEXT NOT NULL,
-          last_name TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        );
-      `);
-
-      _db.run(`
-        CREATE TABLE IF NOT EXISTS entities (
-          id TEXT PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          bank_name TEXT NOT NULL,
-          initial_capital REAL NOT NULL DEFAULT 0,
-          annual_interest REAL NOT NULL DEFAULT 0,
-          savings_goal REAL NOT NULL DEFAULT 0,
-          created_at TEXT NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        );
-      `);
-
-      _db.run(`
-        CREATE TABLE IF NOT EXISTS contributions (
-          id TEXT PRIMARY KEY,
-          entity_id TEXT NOT NULL,
-          amount REAL NOT NULL,
-          note TEXT,
-          created_at TEXT NOT NULL,
-          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE
-        );
-      `);
-
-      _db.run(`
-        CREATE TABLE IF NOT EXISTS config (
-          id TEXT PRIMARY KEY,
-          creator_name TEXT NOT NULL DEFAULT 'Anonimo-sys19',
-          contact TEXT NOT NULL DEFAULT 'WhatsApp 62228271 +CR'
-        );
-      `);
-
-      const configCheck = _db.exec("SELECT id FROM config WHERE id = 'main'");
-      if (configCheck.length === 0 || configCheck[0].values.length === 0) {
-        _db.run(
-          "INSERT INTO config (id, creator_name, contact) VALUES ('main', 'Anonimo-sys19', 'WhatsApp 62228271 +CR')",
-        );
-      }
-
-      saveDb(_db);
-      return _db;
-    } catch (err) {
-      _initPromise = null;
-      throw err;
-    }
-  })();
-
-  return _initPromise;
-}
-
-export function saveDb(db: SqlJsDatabase) {
-  ensureDir(path.dirname(DB_PATH));
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+/**
+ * En Turso no necesitamos cargar WASM ni exportar archivos manualmente.
+ * El "client" ya es nuestra conexión persistente.
+ */
+export async function getDb() {
+  return client;
 }
 
 export function generateId(): string {
   return crypto.randomUUID();
 }
 
-export function runSql(db: SqlJsDatabase, sql: string, params: import("sql.js").SqlValue[] = []) {
-  if (params.length > 0) {
-    const safeParams: import("sql.js").SqlValue[] = params.map((p) =>
-      p === null || p === undefined ? "" : p,
-    );
-    const stmt = db.prepare(sql);
-    stmt.bind(safeParams);
-    stmt.step();
-    stmt.free();
-  } else {
-    db.run(sql);
+/**
+ * Mantenemos el nombre y firma de tus funciones para no romper el dashboard
+ * Nota: Ahora son async porque Turso trabaja sobre red.
+ */
+export async function runSql(sql: string, params: any[] = []) {
+  try {
+    await client.execute({ sql, args: params });
+  } catch (error) {
+    console.error("Error ejecutando SQL:", error);
+    throw error;
   }
 }
 
-export function queryAll<T>(
-  db: SqlJsDatabase,
+export async function queryAll<T>(
   sql: string,
-  params: import("sql.js").SqlValue[] = [],
-): T[] {
-  const stmt = db.prepare(sql);
-  if (params.length > 0) {
-    // sql.js doesn't accept null — convert to empty string or appropriate default
-    const safeParams: import("sql.js").SqlValue[] = params.map((p) =>
-      p === null || p === undefined ? "" : p,
-    );
-    stmt.bind(safeParams);
+  params: any[] = [],
+): Promise<T[]> {
+  try {
+    const result = await client.execute({ sql, args: params });
+    // Convertimos las filas de Turso al formato de objeto que esperaba tu app
+    return result.rows as unknown as T[];
+  } catch (error) {
+    console.error("Error en queryAll:", error);
+    return [];
   }
-  const results: T[] = [];
-  while (stmt.step()) {
-    results.push(stmt.getAsObject() as T);
-  }
-  stmt.free();
-  return results;
 }
 
-export function queryOne<T>(
-  db: SqlJsDatabase,
+export async function queryOne<T>(
   sql: string,
-  params: import("sql.js").SqlValue[] = [],
-): T | undefined {
-  const results = queryAll<T>(db, sql, params);
+  params: any[] = [],
+): Promise<T | undefined> {
+  const results = await queryAll<T>(sql, params);
   return results[0];
 }
 
-// Types
+/**
+ * saveDb: No-op para compatibilidad con Turso
+ * Con Turso, los datos se guardan automáticamente en la base de datos.
+ * No necesitamos exportar/importar archivos como en sql.js.
+ */
+export async function saveDb(): Promise<void> {
+  // En Turso, los cambios se persisten automáticamente.
+  // Esta función existe solo para mantener compatibilidad con el código existente.
+}
+
+// --- TIPOS (Se mantienen exactamente igual) ---
 export interface User {
   id: string;
   email: string;

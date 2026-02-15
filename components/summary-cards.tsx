@@ -35,6 +35,7 @@ export function SummaryCards({
       color: "text-accent",
       bgColor: "bg-accent/10",
       borderColor: "border-accent/20",
+      
     },
     {
       title: "Meta Global",

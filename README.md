@@ -18,6 +18,7 @@ Una aplicación web moderna para gestionar y proyectar tus inversiones con cálc
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 19.2.3** - Framework UI
 - **Next.js 16.1.6** - Framework full-stack con App Router
 - **TypeScript** - Tipado estático
@@ -28,12 +29,14 @@ Una aplicación web moderna para gestionar y proyectar tus inversiones con cálc
 - **Lucide React** - Iconografía
 
 ### Backend
+
 - **Next.js API Routes** - Endpoints RESTful
 - **SQLite (sql.js)** - Base de datos en JavaScript
 - **JWT** - Autenticación con tokens
 - **SHA256** - Hashing de contraseñas
 
 ### DevOps
+
 - **Turbopack** - Empaquetador ultra rápido
 - **pnpm** - Gestor de paquetes
 
@@ -45,24 +48,27 @@ Una aplicación web moderna para gestionar y proyectar tus inversiones con cálc
 ## 🚀 Instalación
 
 1. **Clonar el repositorio**
+
 ```bash
 git clone https://github.com/tu-usuario/investpro-dashboard.git
 cd investpro-dashboard
 ```
 
 2. **Instalar dependencias**
+
 ```bash
 pnpm install
 ```
 
 3. **Inicializar base de datos**
-La base de datos se crea automáticamente en la primera ejecución.
+   La base de datos se crea automáticamente en la primera ejecución.
 
 ```bash
 pnpm run dev
 ```
 
 4. **Abrir en navegador**
+
 ```
 http://localhost:3000
 ```
@@ -70,11 +76,13 @@ http://localhost:3000
 ## 📖 Guía de Uso
 
 ### 1. Registrarse
+
 - Ve a la página de inicio y haz clic en "Registrarse"
 - Completa tu nombre, apellido, email y contraseña
 - Se guardará automáticamente con una sesión de 7 días
 
 ### 2. Crear una Entidad (Banco/Inversión)
+
 - En el dashboard, haz clic en "Nueva Entidad"
 - Ingresa:
   - Nombre del banco
@@ -84,6 +92,7 @@ http://localhost:3000
   - Fecha de inicio
 
 ### 3. Agregar Aportes
+
 - Dentro de una entidad, haz clic en "Nuevo Aporte"
 - Ingresa:
   - Monto del aporte
@@ -91,10 +100,12 @@ http://localhost:3000
   - Descripción (opcional)
 
 ### 4. Editar/Eliminar Aportes
+
 - En la sección "Aportes Registrados", pasa el mouse sobre un aporte
 - Aparecerán los botones de editar (lápiz) y eliminar (papelera)
 
 ### 5. Analizar Proyecciones
+
 - El gráfico muestra la proyección a 12 meses
 - La tabla detalla mes a mes con intereses y saldo
 - Visualiza tu progreso hacia la meta de ahorro
@@ -111,6 +122,7 @@ Balance Diario = Balance Anterior × (1 + Tasa Diaria / 100)
 ```
 
 **Ejemplo:**
+
 - Capital: ₡100,000
 - Tasa anual: 5.5%
 - Tasa diaria: 0.015068%
@@ -119,6 +131,7 @@ Balance Diario = Balance Anterior × (1 + Tasa Diaria / 100)
 - ... (y así cada día)
 
 ### Aportes
+
 Los aportes se suman al balance en la fecha especificada y comienzan a generar interés al día siguiente.
 
 ## 📁 Estructura del Proyecto
@@ -173,6 +186,7 @@ investpro-dashboard/
 ## 🔐 Autenticación
 
 ### Registro
+
 ```bash
 POST /api/auth/register
 {
@@ -184,6 +198,7 @@ POST /api/auth/register
 ```
 
 ### Login
+
 ```bash
 POST /api/auth/login
 {
@@ -193,11 +208,13 @@ POST /api/auth/login
 ```
 
 ### Verificar Sesión
+
 ```bash
 GET /api/auth/me
 ```
 
 ### Logout
+
 ```bash
 POST /api/auth/logout
 ```
@@ -205,6 +222,7 @@ POST /api/auth/logout
 ## 📡 API Endpoints
 
 ### Entidades
+
 ```
 GET    /api/entities           # Obtener todas las entidades del usuario
 POST   /api/entities           # Crear nueva entidad
@@ -213,6 +231,7 @@ DELETE /api/entities/[id]      # Eliminar entidad
 ```
 
 ### Aportes
+
 ```
 POST   /api/contributions      # Crear nuevo aporte
 PUT    /api/contributions      # Editar aporte
@@ -224,11 +243,9 @@ DELETE /api/contributions?id=  # Eliminar aporte
 El proyecto usa CSS variables para el tema. Edita `app/globals.css`:
 
 ```css
---primary: 32 194 154      /* Emerald-500 */
---accent: 116 192 252      /* Blue-400 */
---background: 9 9 11       /* Gris oscuro */
---foreground: 250 250 250  /* Texto blanco */
---muted-foreground: 161 140 200
+--primary: 32 194 154 /* Emerald-500 */ --accent: 116 192 252 /* Blue-400 */
+  --background: 9 9 11 /* Gris oscuro */ --foreground: 250 250 250
+  /* Texto blanco */ --muted-foreground: 161 140 200;
 ```
 
 ## 🧪 Desarrollo
@@ -255,16 +272,19 @@ node scripts/reset-db.js
 ## 📊 Características Avanzadas
 
 ### Multi-Usuario
+
 - Cada usuario tiene datos completamente aislados
 - Las entidades y aportes se filtran por `user_id`
 - Las sesiones expiran en 7 días
 
 ### Proyecciones Inteligentes
+
 - Calcula 12 meses futuros con capitalización diaria
 - Incluye aportes existentes en los cálculos
 - Muestra intereses ganados por mes
 
 ### Historial Real
+
 - Registra balance y intereses por cada mes completado
 - Basado en datos reales con aportes históricos
 - Permite comparar proyecciones vs realidad
@@ -289,11 +309,13 @@ Este proyecto está bajo licencia MIT. Ver `LICENSE` para más detalles.
 **Contacto**: WhatsApp 62228271 +CR
 
 ### Inspiración
+
 Inspirado en aplicaciones de gestión financiera como MultiMoney Smart, con enfoque en precisión de cálculos y experiencia de usuario moderna.
 
 ## 🐛 Reporte de Bugs
 
 Si encuentras un bug, por favor abre un [Issue](https://github.com/tu-usuario/investpro-dashboard/issues) con:
+
 - Descripción del problema
 - Pasos para reproducir
 - Comportamiento esperado
@@ -314,6 +336,7 @@ Si encuentras un bug, por favor abre un [Issue](https://github.com/tu-usuario/in
 ## 📧 Soporte
 
 Para soporte, contacta a través de:
+
 - WhatsApp: +506 62228271
 - Email: (agregar email cuando esté disponible)
 

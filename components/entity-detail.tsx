@@ -139,7 +139,9 @@ export function EntityDetail({
             <p className="text-xl font-bold text-accent">
               {formatCurrency(interestEarned)}
             </p>
+            {/* Tasa anual  */}
           </CardContent>
+        
         </Card>
         <Card className="glass rounded-3xl border-border/50">
           <CardContent className="p-4">
@@ -152,8 +154,7 @@ export function EntityDetail({
             {/* fecha del ultimo aporte */}
             {lastContributionDate && (
               <p className="text-xs text-muted-foreground mb-1">
-                UA:{" "}
-                {lastContributionDate.toLocaleDateString("es-CR")}
+                UA: {lastContributionDate.toLocaleDateString("es-CR")}
               </p>
             )}
           </CardContent>

@@ -36,9 +36,10 @@ export async function POST(request: Request) {
     const db = await getDb();
 
     // Check if email already exists
-    const existingUser = queryOne(db, "SELECT id FROM users WHERE email = ?", [
-      email,
-    ]);
+    const existingUser = await queryOne<{ id: string }>(
+      "SELECT id FROM users WHERE email = ?",
+      [email],
+    );
 
     if (existingUser) {
       return NextResponse.json(
@@ -52,12 +53,12 @@ export async function POST(request: Request) {
     const passwordHash = hashPassword(password);
     const createdAt = new Date().toISOString();
 
-    db.run(
-      "INSERT INTO users (id, email, password_hash, first_name, last_name, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-      [userId, email, passwordHash, firstName, lastName, createdAt],
-    );
+    await db.execute({
+      sql: "INSERT INTO users (id, email, password_hash, first_name, last_name, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+      args: [userId, email, passwordHash, firstName, lastName, createdAt],
+    });
 
-    saveDb(db);
+    await saveDb();
 
     // Generate token
     const token = await generateToken(userId);

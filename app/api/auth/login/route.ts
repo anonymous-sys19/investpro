@@ -17,8 +17,7 @@ export async function POST(request: Request) {
     const db = await getDb();
 
     // Find user by email
-    const user = queryOne<User>(
-      db,
+    const user = await queryOne<User>(
       "SELECT id, email, password_hash, first_name, last_name FROM users WHERE email = ?",
       [email],
     );

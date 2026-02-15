@@ -32,13 +32,11 @@ export async function GET(request: Request) {
 
     const db = await getDb();
     // Only get entities for this user
-    const entities = queryAll<Entity>(
-      db,
+    const entities = await queryAll<Entity>(
       "SELECT * FROM entities WHERE user_id = ? ORDER BY created_at DESC",
       [verified.userId],
     );
-    const contributions = queryAll<Contribution>(
-      db,
+    const contributions = await queryAll<Contribution>(
       "SELECT * FROM contributions ORDER BY created_at DESC",
     );
 
@@ -104,9 +102,9 @@ export async function POST(request: Request) {
     const id = generateId();
     const date = createdAt || new Date().toISOString();
 
-    db.run(
-      "INSERT INTO entities (id, user_id, bank_name, initial_capital, annual_interest, savings_goal, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
+    await db.execute({
+      sql: "INSERT INTO entities (id, user_id, bank_name, initial_capital, annual_interest, savings_goal, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      args: [
         id,
         verified.userId,
         bankName,
@@ -115,12 +113,12 @@ export async function POST(request: Request) {
         Number(savingsGoal),
         date,
       ],
-    );
-    saveDb(db);
+    });
+    await saveDb();
 
-    const entity = queryAll<Entity>(db, "SELECT * FROM entities WHERE id = ?", [
-      id,
-    ])[0];
+    const entity = (
+      await queryAll<Entity>("SELECT * FROM entities WHERE id = ?", [id])
+    )[0];
 
     return NextResponse.json({ ...entity, contributions: [] }, { status: 201 });
   } catch (error) {

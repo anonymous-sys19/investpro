@@ -31,8 +31,7 @@ export async function GET(request: Request) {
     }
 
     const db = await getDb();
-    const user = queryOne<User>(
-      db,
+    const user = await queryOne<User>(
       "SELECT id, email, first_name, last_name FROM users WHERE id = ?",
       [verified.userId],
     );
